@@ -1,59 +1,32 @@
-
-using System;
 using System.Net;
-using OfficeDevPnP.Core;
-using OfficeDevPnP.Core.Utilities;
-using PnPAuthenticationManager = OfficeDevPnP.Core.AuthenticationManager;
+
+const double revenuePerkW = 0.12; 
+const double technicianCost = 250; 
+const double turbineCost = 100;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
-{
+{   
 
+    //Get request body
     dynamic data = await req.Content.ReadAsAsync<object>();
+    int hours = data.hours;
+    int capacity = data.capacity;
 
-    string sharePointSiteUrl = data["sharePointSiteUrl"];
-    string baseFolderServerRelativeUrl = data["baseFolderServerRelativeUrl"];
-    string newFolderName = data["newFolderName"];
+    //Formulas to calculate revenue and cost
+    double revenueOpportunity = capacity * revenuePerkW * 24;  
+    double costToFix = (hours * technicianCost) +  turbineCost;
+    string repairTurbine;
 
-    log.Info($"sharePointSiteUrl = '{sharePointSiteUrl}'");
-    log.Info($"baseFolderServerRelativeUrl = '{baseFolderServerRelativeUrl}'");
-    log.Info($"newFolderName = '{newFolderName}'");
-
-    string userName = System.Environment.GetEnvironmentVariable("SharePointUser", EnvironmentVariableTarget.Process);
-    string password = System.Environment.GetEnvironmentVariable("SharePointPassword", EnvironmentVariableTarget.Process);
-
-    var authenticationManager = new PnPAuthenticationManager();
-    var clientContext = authenticationManager.GetSharePointOnlineAuthenticatedContextTenant(sharePointSiteUrl, userName, password);
-    var pnpClientContext = PnPClientContext.ConvertFrom(clientContext);
-
-    string newFolderUrl = UrlUtility.Combine(baseFolderServerRelativeUrl, newFolderName);
-
-    string resultMessage = "";
-
-    if(!doesFolderExist(pnpClientContext, newFolderUrl)){
-        var folder = pnpClientContext.Web.GetFolderByServerRelativeUrl(baseFolderServerRelativeUrl);
-        folder.AddSubFolder(newFolderName);
-
-        pnpClientContext.ExecuteQuery();
-
-        resultMessage = "Folder has been created";
-    } else {
-        resultMessage = "Folder already exists";
+    if (revenueOpportunity > costToFix){
+        repairTurbine = "Yes";
     }
-    
-    return req.CreateResponse(HttpStatusCode.OK, resultMessage);
-}
-
-public static bool doesFolderExist(PnPClientContext clientContext, string folderUrl)
-{
-    try
-    {
-        var folder = clientContext.Web.GetFolderByServerRelativeUrl(folderUrl);
-        clientContext.ExecuteQuery();
-
-        return true;
+    else {
+        repairTurbine = "No";
     }
-    catch
-    {
-        return false;
-    }
+
+    return req.CreateResponse(HttpStatusCode.OK, new{
+        message = repairTurbine,
+        revenueOpportunity = "$"+ revenueOpportunity,
+        costToFix = "$"+ costToFix         
+    }); 
 }
