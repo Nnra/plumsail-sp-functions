@@ -1,32 +1,19 @@
 using System.Net;
+using System;
+using System.Linq;
 
-const double revenuePerkW = 0.12; 
-const double technicianCost = 250; 
-const double turbineCost = 100;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
 {   
 
     //Get request body
-    dynamic data = await req.Content.ReadAsAsync<object>();
-    int hours = data.hours;
-    int capacity = data.capacity;
+    double price = await req.Content.ReadAsAsync<double>();
+    log.Info(string.Format("The item price received is '{0}'.",price.ToString()));    
 
-    //Formulas to calculate revenue and cost
-    double revenueOpportunity = capacity * revenuePerkW * 24;  
-    double costToFix = (hours * technicianCost) +  turbineCost;
-    string repairTurbine;
-
-    if (revenueOpportunity > costToFix){
-        repairTurbine = "Yes";
-    }
-    else {
-        repairTurbine = "No";
-    }
-
-    return req.CreateResponse(HttpStatusCode.OK, new{
-        message = repairTurbine,
-        revenueOpportunity = "$"+ revenueOpportunity,
-        costToFix = "$"+ costToFix         
-    }); 
+    string pricecurrency;
+    pricecurrency = String.Format( "{0} => {1}", C, price.ToString( C ) );
+    Console.WriteLine( "Numeric String Format: " );
+    Console.WriteLine( String.Format( "{0} => {1}", C, price.ToString( C ) ) );   
+    return req.CreateResponse(HttpStatusCode.OK, pricecurrency);
+    
 }
