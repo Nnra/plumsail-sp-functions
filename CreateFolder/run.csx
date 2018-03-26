@@ -12,7 +12,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
 
     string pricecurrency;
-    pricecurrency = String.Format( "{0:C}", price.ToString( C ) );
+    pricecurrency = String.Format( "{0:C}", price.ToString( ) );
     Console.WriteLine("{0:C}", price);  
     return req.CreateResponse(HttpStatusCode.OK, pricecurrency);
     
